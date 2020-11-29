@@ -15,7 +15,7 @@ const remoteVideo = document.getElementById('remoteVideo');
 
 var DELIMITER_STR="$*";
 
-var conn = new WebSocket("ws://" + "127.0.0.1:8955" + "/ws");
+var conn = new WebSocket("ws://" + "www.fdu-web.live:8955" + "/ws");
 
 conn.onopen = function () {
     console.log(`websocket open`);
