@@ -116,7 +116,20 @@ async function setupPc(uid) {
     if (audioTracks.length > 0) {
         console.log(`Using audio device: ${audioTracks[0].label}`);
     }
-    const configuration = {};
+    const configuration = {iceServers:
+        [
+            {
+                'url': 'turn:turn.fannunshuang.com:3478?transport=tcp',
+                'credential': '4e6b598f829d48e8e69c6d36364d9726'
+                //'username': 'webrtcuser'
+            },
+            {
+                'url': 'turn:turn.fanjunshuang.com:3478?transport=udp',
+                'credential': '4e6b598f829d48e8e69c6d36364d9726'
+                //'username': 'webrtcuser'
+            }
+        ]
+    };
     console.log('RTCPeerConnection configuration:', configuration);
     peers[uid] = new RTCPeerConnection(configuration);
     console.log('Created local peer connection object pc');
