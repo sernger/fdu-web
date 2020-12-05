@@ -17,6 +17,8 @@ var DELIMITER_STR="$*";
 
 var conn = new WebSocket("ws://" + "www.fdu-web.live:8955" + "/ws");
 
+var turnData;
+
 conn.onopen = function () {
     console.log(`websocket open`);
 }
@@ -37,24 +39,33 @@ conn.onmessage = function (evt) {
     switch (messages[0]) {
         case 'useradd':
             console.log(`useradd ${messages[1]}`);
-            onUserAdd(parseInt(messages[1]))
+            onUserAdd(parseInt(messages[1]));
             break;
         case 'userdel':
             console.log(`userdel ${messages[1]}`);
-            onUserDel(parseInt(messages[1]))
+            onUserDel(parseInt(messages[1]));
             break;
         case 'offer':
             console.log(`offer ${messages[2]}`);
-            onRecvOffer(parseInt(messages[2]), JSON.parse(messages[3]))
+            onRecvOffer(parseInt(messages[2]), JSON.parse(messages[3]));
             break;
         case 'answer':
             console.log(`answer ${messages[2]}`);
-            onRecvAnswer(parseInt(messages[2]), JSON.parse(messages[3]))
+            onRecvAnswer(parseInt(messages[2]), JSON.parse(messages[3]));
             break;
+        case 'turndata':
+            console.log(`turndata ${messages[1]}`);
+            turnData = JSON.parse(messages[1]);
+						break;
+				case 'icecandidate':
+						onIceCandidateFromPeer(parseInt(messages[2]), JSON.parse(messages[3]));
+						break;
         default:
             console.log(`Sorry, we are out of ${messages[0]}.`);
     }
 };
+
+
 
 var peers = {};
 async function onUserAdd(uid) {
@@ -116,20 +127,20 @@ async function setupPc(uid) {
     if (audioTracks.length > 0) {
         console.log(`Using audio device: ${audioTracks[0].label}`);
     }
+    var turnservers = [];
+    for (var i = 0 ; i < turnData.Uris.length; i++)
+    {
+        var turn = {};
+        turn.url = turnData.Uris[i];
+        turn.username = turnData.Username;
+        turn.credential = turnData.Password;
+        turnservers.push(turn)
+    }
+    
     const configuration = {iceServers:
-        [
-            {
-                'url': 'turn:turn.fannunshuang.com:3478?transport=tcp',
-                'credential': '4e6b598f829d48e8e69c6d36364d9726'
-                //'username': 'webrtcuser'
-            },
-            {
-                'url': 'turn:turn.fanjunshuang.com:3478?transport=udp',
-                'credential': '4e6b598f829d48e8e69c6d36364d9726'
-                //'username': 'webrtcuser'
-            }
-        ]
+        turnservers
     };
+    
     console.log('RTCPeerConnection configuration:', configuration);
     peers[uid] = new RTCPeerConnection(configuration);
     console.log('Created local peer connection object pc');
@@ -195,7 +206,7 @@ function onSetSessionDescriptionError(error) {
 
 async function onRecvOffer(uid, desc) {
     await setupPc(uid);
-    console.log('onRecvOffer pc setRemoteDescription start');
+    console.log(`onRecvOffer pc setRemoteDescription start \n ${desc.sdp}`);
     try {
         await peers[uid].setRemoteDescription(desc);
         onSetRemoteSuccess(uid);
@@ -216,7 +227,7 @@ async function onRecvOffer(uid, desc) {
 }
 
 async function onRecvAnswer(uid, desc) {
-    console.log('onRecvAnswer pc setRemoteDescription start');
+    console.log(`onRecvAnswer pc setRemoteDescription start\n ${desc.sdp}`);
     try {
       await peers[uid].setRemoteDescription(desc);
       onSetRemoteSuccess(uid);
@@ -238,13 +249,25 @@ async function onCreateAnswerSuccess(uid, desc) {
 }
 
 async function onIceCandidate(uid, event) {
-  try {
+	conn.send("icecandidate"+DELIMITER_STR+uid.toString()+DELIMITER_STR+local_uid.toString()+DELIMITER_STR+JSON.stringify(event.candidate)); /*try {
     await (peers[uid].addIceCandidate(event.candidate));
     onAddIceCandidateSuccess(uid);
   } catch (e) {
     onAddIceCandidateError(uid, e);
-  }
-  console.log(`${uid} ICE candidate:\n${event.candidate ? event.candidate.candidate : '(null)'}`);
+	}
+	console.log(`${uid} ICE candidate:\n${event.candidate ? event.candidate.candidate : '(null)'}`);
+	*/
+  console.log(`send IceCandidate to ${uid}:\n${event.candidate ? event.candidate.candidate : '(null)'}`);
+}
+
+async function onIceCandidateFromPeer(uid, candidate) {
+	try {
+		await (peers[uid].addIceCandidate(candidate));
+		onAddIceCandidateSuccess(uid);
+	} catch (e) {
+		onAddIceCandidateError(uid, e);
+	}
+	console.log(`ICE candidate from ${uid} :\n${candidate ? candidate.candidate : '(null)'}`);
 }
 
 function onAddIceCandidateSuccess(uid) {

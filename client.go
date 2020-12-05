@@ -47,7 +47,7 @@ type Client struct {
 	// Buffered channel of outbound messages.
 	send chan []byte
 
-	uid  uint32;
+	uid int
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -76,12 +76,12 @@ func (c *Client) readPump() {
 		log.Printf("msg:%s\n", message)
 		//message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 		messages := strings.Split(string(message), DELIMITER_STR)
-		if(len(messages) >= 2 && messages[0] == "useradd") {
-			 uid , err := strconv.Atoi(messages[1])
-			 if err == nil {
-				c.uid = uint32(uid)
-			 }
-			 c.hub.register <- c
+		if len(messages) >= 2 && messages[0] == "useradd" {
+			uid, err := strconv.Atoi(messages[1])
+			if err == nil {
+				c.uid = uid
+			}
+			c.hub.register <- c
 		}
 		c.hub.broadcast <- message
 	}
