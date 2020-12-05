@@ -28,18 +28,15 @@
     </p>
 
     <video id="localVideo" playsinline autoplay muted></video>
-    <video id="remoteVideo" playsinline autoplay></video>
+    <div id="remoteVideoDiv">
+        <!--video id="remoteVideo" playsinline autoplay></video-->
+    </div>
+    
 
     <div class="box">
         <button id="startButton">Start</button>
-        <button id="callButton">Call</button>
         <button id="hangupButton">Hang Up</button>
     </div>
-
-    <p>View the console to see logging. The <code>MediaStream</code> object <code>localStream</code>, and the <code>RTCPeerConnection</code>
-        objects <code>pc1</code> and <code>pc2</code> are in global scope, so you can inspect them in the console as
-        well.</p>
-
 
 </div>
 

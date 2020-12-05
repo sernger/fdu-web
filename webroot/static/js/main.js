@@ -1,17 +1,14 @@
 'use strict';
 
 const startButton = document.getElementById('startButton');
-const callButton = document.getElementById('callButton');
 const hangupButton = document.getElementById('hangupButton');
-callButton.disabled = true;
+const remoteVideoDiv = document.getElementById('remoteVideoDiv');
 hangupButton.disabled = true;
 startButton.addEventListener('click', start);
-callButton.addEventListener('click', call);
 hangupButton.addEventListener('click', hangup);
 
 let startTime;
 const localVideo = document.getElementById('localVideo');
-const remoteVideo = document.getElementById('remoteVideo');
 
 var DELIMITER_STR="$*";
 
@@ -68,6 +65,7 @@ conn.onmessage = function (evt) {
 
 
 var peers = {};
+var remoteVideos = {};
 async function onUserAdd(uid) {
     call(uid)
 }
@@ -78,21 +76,6 @@ async function onUserDel(uid) {
 
 localVideo.addEventListener('loadedmetadata', function() {
   console.log(`Local video videoWidth: ${this.videoWidth}px,  videoHeight: ${this.videoHeight}px`);
-});
-
-remoteVideo.addEventListener('loadedmetadata', function() {
-  console.log(`Remote video videoWidth: ${this.videoWidth}px,  videoHeight: ${this.videoHeight}px`);
-});
-
-remoteVideo.addEventListener('resize', () => {
-  console.log(`Remote video size changed to ${remoteVideo.videoWidth}x${remoteVideo.videoHeight}`);
-  // We'll use the first onsize callback as an indication that video has started
-  // playing out.
-  if (startTime) {
-    const elapsedTime = window.performance.now() - startTime;
-    console.log('Setup time: ' + elapsedTime.toFixed(3) + 'ms');
-    startTime = null;
-  }
 });
 
 let localStream;
@@ -111,7 +94,6 @@ async function start() {
     console.log('Received local stream');
     localVideo.srcObject = stream;
     localStream = stream;
-    callButton.disabled = false;
   } catch (e) {
     alert(`getUserMedia() error: ${e.name}`);
   }
@@ -152,15 +134,41 @@ async function setupPc(uid) {
     console.log('Added local stream to pc');
 }
 
+function createRemoteVideoDom(uid) {
+	if(remoteVideos[uid] != null)
+		return;
+	remoteVideos[uid] = document.createElement("VIDEO");
+	//remoteVideos[uid].setAttribute("width", "320");
+	//remoteVideos[uid].setAttribute("height", "240");
+	remoteVideos[uid].setAttribute("autoplay", "autoplay");
+	remoteVideoDiv.appendChild(remoteVideos[uid]);
+
+	remoteVideos[uid].addEventListener('loadedmetadata', function() {
+		console.log(`Remote video videoWidth: ${this.videoWidth}px,  videoHeight: ${this.videoHeight}px`);
+	});
+	
+	remoteVideos[uid].addEventListener('resize', (e) => {
+		console.log(`Remote video size changed to ${e.srcElement.videoWidth}x${e.srcElement.videoHeight}`);
+		// We'll use the first onsize callback as an indication that video has started
+		// playing out.
+		if (startTime) {
+			const elapsedTime = window.performance.now() - startTime;
+			console.log('Setup time: ' + elapsedTime.toFixed(3) + 'ms');
+			startTime = null;
+		}
+	});
+
+}
+
 function gotRemoteStream(uid, e) {
-    if (remoteVideo.srcObject !== e.streams[0]) {
-        remoteVideo.srcObject = e.streams[0];
-        console.log(`pc received remote stream from ${uid}`);
-    }
+	createRemoteVideoDom(uid);
+	if (remoteVideos[uid].srcObject !== e.streams[0]) {
+		remoteVideos[uid].srcObject = e.streams[0];
+			console.log(`pc received remote stream from ${uid}`);
+	}
 }
 
 async function call(uid) {
-  callButton.disabled = true;
   hangupButton.disabled = false;
   console.log('Starting call');
 
@@ -286,9 +294,10 @@ function onIceStateChange(uid, event) {
 }
 
 function hangup(uid) {
-  console.log('Ending call');
+	console.log(`Ending call ${uid}`);
   peers[uid].close();
   delete peers[uid];
-  hangupButton.disabled = true;
-  callButton.disabled = false;
+	hangupButton.disabled = true;
+	remoteVideoDiv.removeChild(remoteVideos[uid]);
+	remoteVideos[uid] = null;
 }
