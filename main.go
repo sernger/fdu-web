@@ -18,14 +18,14 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, "src/server/webroot/index.html")
+	http.ServeFile(w, r, "webroot/index.html")
 }
 
 func main() {
 	flag.Parse()
 	hub := newHub()
 	go hub.run()
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("src/server/webroot/static"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webroot/static"))))
 	http.HandleFunc("/", serveHome)
 	
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
