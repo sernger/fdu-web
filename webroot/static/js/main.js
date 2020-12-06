@@ -3,9 +3,18 @@
 const startButton = document.getElementById('startButton');
 const hangupButton = document.getElementById('hangupButton');
 const remoteVideoDiv = document.getElementById('remoteVideoDiv');
+const audioInputSelect = document.querySelector('select#audioSource');
+const audioOutputSelect = document.querySelector('select#audioOutput');
+const videoSelect = document.querySelector('select#videoSource');
+
+const selectors = [audioInputSelect, audioOutputSelect, videoSelect];
+
+audioOutputSelect.disabled = !('sinkId' in HTMLMediaElement.prototype);
+
 hangupButton.disabled = true;
 startButton.addEventListener('click', start);
 hangupButton.addEventListener('click', hangup);
+
 
 let startTime;
 const localVideo = document.getElementById('localVideo');
@@ -86,19 +95,31 @@ const offerOptions = {
   offerToReceiveVideo: 1
 };
 
+async function getLocalMedia() {
+    try {
+        const audioSource = audioInputSelect.value;
+        const videoSource = videoSelect.value;
+        const constraints = {
+            audio: {deviceId: audioSource ? {exact: audioSource} : undefined},
+            video: {deviceId: videoSource ? {exact: videoSource} : undefined}
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
+        console.log('Received local stream');
+        localVideo.srcObject = stream;
+        localStream = stream;
+      } catch (e) {
+        alert(`getUserMedia() error: ${e.name}`);
+      }
+}
+
 async function start() {
   console.log('Requesting local stream');
   startButton.disabled = true;
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
-    console.log('Received local stream');
-    localVideo.srcObject = stream;
-    localStream = stream;
-  } catch (e) {
-    alert(`getUserMedia() error: ${e.name}`);
-  }
+  await getLocalMedia();
   conn.send("useradd"+DELIMITER_STR+local_uid.toString());
 }
+
 async function setupPc(uid) {
     startTime = window.performance.now();
     const videoTracks = localStream.getVideoTracks();
@@ -301,3 +322,81 @@ function hangup(uid) {
 	remoteVideoDiv.removeChild(remoteVideos[uid]);
 	remoteVideos[uid] = null;
 }
+
+function gotDevices(deviceInfos) {
+    // Handles being called several times to update labels. Preserve values.
+    const values = selectors.map(select => select.value);
+    selectors.forEach(select => {
+      while (select.firstChild) {
+        select.removeChild(select.firstChild);
+      }
+    });
+    for (let i = 0; i !== deviceInfos.length; ++i) {
+      const deviceInfo = deviceInfos[i];
+      const option = document.createElement('option');
+      option.value = deviceInfo.deviceId;
+      if (deviceInfo.kind === 'audioinput') {
+        option.text = deviceInfo.label || `microphone ${audioInputSelect.length + 1}`;
+        audioInputSelect.appendChild(option);
+      } else if (deviceInfo.kind === 'audiooutput') {
+        option.text = deviceInfo.label || `speaker ${audioOutputSelect.length + 1}`;
+        audioOutputSelect.appendChild(option);
+      } else if (deviceInfo.kind === 'videoinput') {
+        option.text = deviceInfo.label || `camera ${videoSelect.length + 1}`;
+        videoSelect.appendChild(option);
+      } else {
+        console.log('Some other kind of source/device: ', deviceInfo);
+      }
+    }
+    selectors.forEach((select, selectorIndex) => {
+      if (Array.prototype.slice.call(select.childNodes).some(n => n.value === values[selectorIndex])) {
+        select.value = values[selectorIndex];
+      }
+    });
+}
+
+navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
+
+// Attach audio output device to video element using device/sink ID.
+function attachSinkId(element, sinkId) {
+    if (typeof element.sinkId !== 'undefined') {
+      element.setSinkId(sinkId)
+          .then(() => {
+            console.log(`Success, audio output device attached: ${sinkId}`);
+          })
+          .catch(error => {
+            let errorMessage = error;
+            if (error.name === 'SecurityError') {
+              errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`;
+            }
+            console.error(errorMessage);
+            // Jump back to first output device in the list as it's the default.
+            audioOutputSelect.selectedIndex = 0;
+          });
+    } else {
+      console.warn('Browser does not support output device selection.');
+    }
+  }
+  
+  function changeAudioDestination() {
+    const audioDestination = audioOutputSelect.value;
+    attachSinkId(videoElement, audioDestination);
+  }
+
+  function handleError(error) {
+    console.log('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
+  }
+
+  function changeAVSelect() {
+    if (localStream) {
+        localStream.getTracks().forEach(track => {
+        track.stop();
+      });
+    }
+    getLocalMedia();
+  }
+
+audioInputSelect.onchange = changeAVSelect;
+audioOutputSelect.onchange = changeAudioDestination;
+
+videoSelect.onchange = changeAVSelect;

@@ -282,6 +282,20 @@ div.box {
   margin: 1em;
 }
 
+div.select {
+    display: inline-block;
+    margin: 0 0 1em 0;
+}
+
+p.small {
+    font-size: 0.7em;
+}
+
+label {
+    width: 12em;
+    display: inline-block;
+}
+
 @media screen and (max-width: 400px) {
   button {
     width: 83px;

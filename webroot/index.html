@@ -24,10 +24,19 @@
 
 <div id="container">
 
-    <p>This sample shows how to setup a connection between two peers using RTCPeerConnection</a>.
-    </p>
+    <div class="select">
+        <label for="audioSource">Audio input source: </label><select id="audioSource"></select>
+    </div>
 
-    <video id="localVideo" playsinline autoplay></video>
+    <div class="select">
+        <label for="audioOutput">Audio output destination: </label><select id="audioOutput"></select>
+    </div>
+
+    <div class="select">
+        <label for="videoSource">Video source: </label><select id="videoSource"></select>
+    </div>
+
+    <video id="localVideo" playsinline autoplay muted></video>
     <div id="remoteVideoDiv">
         <!--video id="remoteVideo" playsinline autoplay></video-->
     </div>
