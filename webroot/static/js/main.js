@@ -21,7 +21,7 @@ const localVideo = document.getElementById('localVideo');
 
 var DELIMITER_STR="$*";
 
-var conn = new WebSocket("ws://" + "www.fdu-web.live:8955" + "/ws");
+var conn = new WebSocket("wss://" + "fdu-web.live" + "/ws");
 
 var turnData;
 
