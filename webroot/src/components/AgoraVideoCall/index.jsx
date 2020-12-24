@@ -50,6 +50,7 @@ class AgoraCanvas extends React.Component {
 
     this.conn.onopen = () => {
       console.log("websocket open");
+      this.getonConnect();
     }
 
     this.conn.onclose = (e) => {
@@ -142,8 +143,11 @@ class AgoraCanvas extends React.Component {
 
     console.log('Requesting local stream');
     await this.getLocalMedia();
-    this.conn.send("useradd"+DELIMITER_STR+local_uid.toString());
   }
+
+  getonConnect() {
+    this.conn.send("useradd"+DELIMITER_STR+local_uid.toString());
+  } 
 
   async getLocalMedia() {
     try {
@@ -586,7 +590,7 @@ class AgoraCanvas extends React.Component {
     }
     try {
       //this.client && this.client.unpublish(this.localStream)
-      this.localStream && this.localStream.close()
+      //this.localStream && this.localStream.close()
       /*this.client && this.client.leave(() => {
         console.log('Client succeed to leave.')
       }, () => {

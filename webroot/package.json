@@ -1,9 +1,8 @@
 {
   "name": "open-video-call-react",
   "version": "2.6.1",
-  "description": "Integrate Agora SDK with ReactJS to realize a simple video chat app",
+  "description": "realize a simple video chat app",
   "dependencies": {
-    "agora-rtc-sdk": "^2.6.1",
     "bulma": "^0.6.1",
     "js-cookie": "^2.2.0",
     "react": "^16.8.6",
@@ -34,16 +33,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AgoraIO/OpenAgoraWeb-React.git"
+    "url": "git"
   },
   "keywords": [
     "ReactJS",
-    "AgoraSDK",
     "VideoCall"
   ],
-  "author": "<haoyang@agora.io>",
+  "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/AgoraIO/OpenAgoraWeb-React/issues"
+    "url": ""
   }
 }
