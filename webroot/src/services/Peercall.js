@@ -1,3 +1,4 @@
+"use strict";
 
 function Peercall(callback) {
     this.startTime = 0;
@@ -277,8 +278,10 @@ Peercall.prototype.onIceStateChange = function (uid, event) {
 
 Peercall.prototype.hangup = function (uid) {
     console.log(`Ending call ${uid}`);
-    this.peers[uid].close();
-    delete this.peers[uid];
+    if (this.peers[uid] != null) {
+        this.peers[uid].close();
+        delete this.peers[uid];
+    }
 }
 
 Peercall.prototype.gotDevices = function (deviceInfos) {
