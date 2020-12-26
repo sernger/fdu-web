@@ -25,13 +25,13 @@ func main() {
 	flag.Parse()
 	hub := newHub()
 	go hub.run()
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webroot/static"))))
-	http.HandleFunc("/", serveHome)
-	
+	//http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webroot/static"))))
+	//http.HandleFunc("/", serveHome)
+
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
-	
+
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
