@@ -1,8 +1,7 @@
 "use strict";
-
+var DELIMITER_STR = "$*$*$"
 function Peercall(callback) {
     this.startTime = 0;
-    this.DELIMITER_STR = "$*";
     this.peers = {};
     this.remoteVideos = {};
     this.conn = new WebSocket("wss://" + "fdu-web.live" + "/ws");
@@ -51,7 +50,7 @@ Peercall.prototype.Init = async function () {
     }.bind(this);
 
     this.conn.onmessage = function (evt) {
-        var messages = evt.data.split(this.DELIMITER_STR);
+        var messages = evt.data.split(DELIMITER_STR);
         if (messages.length == 0)
             return;
         switch (messages[0]) {
@@ -64,11 +63,11 @@ Peercall.prototype.Init = async function () {
                 this.onUserDel(parseInt(messages[1]));
                 break;
             case 'offer':
-                console.log(`offer ${messages[2]}`);
+                console.log(`offer ${messages[2]} \n  ${messages[3]} `);
                 this.onRecvOffer(parseInt(messages[2]), JSON.parse(messages[3]));
                 break;
             case 'answer':
-                console.log(`answer ${messages[2]}`);
+                console.log(`answer ${messages[2]} \n  ${messages[3]} `);
                 this.onRecvAnswer(parseInt(messages[2]), JSON.parse(messages[3]));
                 break;
             case 'turndata':
@@ -76,6 +75,7 @@ Peercall.prototype.Init = async function () {
                 this.turnData = JSON.parse(messages[1]);
                 break;
             case 'icecandidate':
+                console.log(`icecandidate ${messages[2]} \n  ${messages[3]} `);
                 this.onIceCandidateFromPeer(parseInt(messages[2]), JSON.parse(messages[3]));
                 break;
             default:
@@ -97,7 +97,7 @@ Peercall.prototype.onUserDel = function (uid) {
 Peercall.prototype.start = async function () {
     console.log('Requesting local stream');
     await this.getLocalMedia();
-    this.conn.send("useradd" + this.DELIMITER_STR + this.local_uid.toString());
+    this.conn.send("useradd" + DELIMITER_STR + this.local_uid.toString());
 }
 
 Peercall.prototype.getLocalMedia = async function () {
@@ -187,7 +187,7 @@ Peercall.prototype.onCreateOfferSuccess = async function (uid, desc) {
         this.onSetSessionDescriptionError();
     }
 
-    this.conn.send("offer" + this.DELIMITER_STR + uid.toString() + this.DELIMITER_STR + this.local_uid.toString() + this.DELIMITER_STR + JSON.stringify(desc));
+    this.conn.send("offer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + JSON.stringify(desc));
 }
 
 Peercall.prototype.onSetLocalSuccess = function (uid) {
@@ -243,11 +243,11 @@ Peercall.prototype.onCreateAnswerSuccess = async function (uid, desc) {
     } catch (e) {
         this.onSetSessionDescriptionError(e);
     }
-    this.conn.send("answer" + this.DELIMITER_STR + uid.toString() + this.DELIMITER_STR + this.local_uid.toString() + this.DELIMITER_STR + JSON.stringify(desc));
+    this.conn.send("answer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + JSON.stringify(desc));
 }
 
 Peercall.prototype.onIceCandidate = async function (uid, event) {
-    this.conn.send("icecandidate" + this.DELIMITER_STR + uid.toString() + this.DELIMITER_STR + this.local_uid.toString() + this.DELIMITER_STR + JSON.stringify(event.candidate));
+    this.conn.send("icecandidate" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + JSON.stringify(event.candidate));
     console.log(`send IceCandidate to ${uid}:\n${event.candidate ? event.candidate.candidate : '(null)'}`);
 }
 

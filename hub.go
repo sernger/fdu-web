@@ -38,7 +38,7 @@ type TurnData struct {
 }
 
 const (
-	DELIMITER_STR   = "$*"
+	DELIMITER_STR   = "$*$*$"
 	DefaultTTL      = 86400
 	Static_auth_key = "4e6b598f829d48e8e69c6d36364d9726"
 )
