@@ -5,6 +5,7 @@ import { merge } from 'lodash'
 import './canvas.css'
 import '../../assets/fonts/css/icons.css'
 import Peercall from '../../services/Peercall'
+import Screenshare from '../../services/Screenshare'
 
 const tile_canvas = {
     '1': ['span 12/span 24'],
@@ -55,6 +56,13 @@ class AgoraCanvas extends React.Component {
             case 'onUserDel':
                 //uid = param1
                 this.removeStream(param1)
+                break;
+            case 'onGotScreenStream':
+                //stream = param1
+                this.addStream(1, param1)
+                break;
+            case 'onRemoveScreenStream':
+                this.removeStream(1)
                 break;
             default:
                 break;
@@ -146,12 +154,8 @@ class AgoraCanvas extends React.Component {
 
     componentWillUnmount() {
         //this.client && this.client.unpublish(this.localStream)
-        //this.localStream && this.localStream.close()
-        /*this.client && this.client.leave(() => {
-          console.log('Client succeed to leave.')
-        }, () => {
-          console.log('Client failed to leave.')
-        })*/
+        this.localStream && this.localStream.close()
+        this.peercall && this.peercall.close()
     }
 
     removeStream = (uid) => {
@@ -168,8 +172,6 @@ class AgoraCanvas extends React.Component {
         this.setState({
             streamList: this.state.streamList
         })
-
-
     }
 
     handleCamera = (e) => {
@@ -230,12 +232,8 @@ class AgoraCanvas extends React.Component {
         }
         try {
             //this.client && this.client.unpublish(this.localStream)
-            //this.localStream && this.localStream.close()
-            /*this.client && this.client.leave(() => {
-              console.log('Client succeed to leave.')
-            }, () => {
-              console.log('Client failed to leave.')
-            })*/
+            this.localStream && this.localStream.close()
+            this.peercall && this.peercall.close()
         }
         finally {
             this.setState({ readyState: false })
@@ -244,6 +242,11 @@ class AgoraCanvas extends React.Component {
             // redirect to index
             window.location.hash = ''
         }
+    }
+
+    handleshare = (e) => {
+        this.screenShare = new Screenshare(this.callback, this.peercall.conn)
+        this.screenShare.start()
     }
 
     render() {
@@ -255,7 +258,7 @@ class AgoraCanvas extends React.Component {
             gridTemplateRows: 'repeat(12, auto)',
             gridTemplateColumns: 'repeat(24, auto)'
         }
-        const videoControlBtn = 
+        const videoControlBtn =
             (<span
                 onClick={this.handleCamera}
                 className="ag-btn videoControlBtn"
@@ -289,7 +292,7 @@ class AgoraCanvas extends React.Component {
                 <i className="ag-icon ag-icon-remove-pip"></i>
             </span>
         )
-        const exitBtn = 1 ? "":(
+        const exitBtn = 1 ? "" : (
             <span
                 onClick={this.handleExit}
                 className={this.state.readyState ? 'ag-btn exitBtn' : 'ag-btn exitBtn disabled'}
@@ -298,17 +301,27 @@ class AgoraCanvas extends React.Component {
             </span>
         )
 
+        const screenShareBtn = 
+            <span
+                onClick={this.handleshare}
+                className={this.state.streamList[1] == null ? 'ag-btn shareScreenBtn' : 'ag-btn shareScreenBtn disabled'}
+                title="Screen Share">
+                <i className="ag-icon ag-icon-screen-share"></i>
+            </span>
+
         return (
             <div id="ag-canvas" style={style}>
                 <div className="ag-btn-group">
                     {exitBtn}
                     {videoControlBtn}
                     {audioControlBtn}
+                    {screenShareBtn}
                     {/* <span className="ag-btn shareScreenBtn" title="Share Screen">
                         <i className="ag-icon ag-icon-screen-share"></i>
                     </span> */}
                     {switchDisplayBtn}
                     {hideRemoteBtn}
+                    
                 </div>
             </div>
         )

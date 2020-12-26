@@ -3,11 +3,9 @@ var DELIMITER_STR = "$*$*$"
 function Peercall(callback) {
     this.startTime = 0;
     this.peers = {};
-    this.remoteVideos = {};
-    this.conn = new WebSocket("wss://" + "fdu-web.live" + "/ws");
     this.callback = callback
 
-    this.local_uid = Math.ceil(Math.random() * 1000000);
+    this.local_uid = Math.ceil(Math.random() * 1000000 + 2);
     this.offerOptions = {
         offerToReceiveAudio: 1,
         offerToReceiveVideo: 1
@@ -63,11 +61,11 @@ Peercall.prototype.Init = async function () {
                 this.onUserDel(parseInt(messages[1]));
                 break;
             case 'offer':
-                console.log(`offer ${messages[2]} \n  ${messages[3]} `);
+                console.log(`offer ${messages[2]}\n${messages[3]}`);
                 this.onRecvOffer(parseInt(messages[2]), JSON.parse(messages[3]));
                 break;
             case 'answer':
-                console.log(`answer ${messages[2]} \n  ${messages[3]} `);
+                console.log(`answer ${messages[2]}\n${messages[3]}`);
                 this.onRecvAnswer(parseInt(messages[2]), JSON.parse(messages[3]));
                 break;
             case 'turndata':
@@ -75,7 +73,7 @@ Peercall.prototype.Init = async function () {
                 this.turnData = JSON.parse(messages[1]);
                 break;
             case 'icecandidate':
-                console.log(`icecandidate ${messages[2]} \n  ${messages[3]} `);
+                console.log(`icecandidate ${messages[2]}\n${messages[3]}`);
                 this.onIceCandidateFromPeer(parseInt(messages[2]), JSON.parse(messages[3]));
                 break;
             default:
@@ -83,8 +81,12 @@ Peercall.prototype.Init = async function () {
         }
     }.bind(this);
     this.start();
-
 }
+
+Peercall.prototype.close = function (uid) {
+    this.conn.close()
+}
+
 Peercall.prototype.onUserAdd = function (uid) {
     this.call(uid)
 }
@@ -150,9 +152,18 @@ Peercall.prototype.setupPc = async function (uid) {
     this.peers[uid].addEventListener('icecandidate', e => this.onIceCandidate(uid, e));
     this.peers[uid].addEventListener('iceconnectionstatechange', e => this.onIceStateChange(uid, e));
     this.peers[uid].addEventListener('track', e => this.gotRemoteStream(uid, e));
+    this.peers[uid].addEventListener('connectionstatechange', e => this.connectionstatechange(uid, e));
 
     this.localStream.getTracks().forEach(track => this.peers[uid].addTrack(track, this.localStream));
     console.log('Added local stream to pc');
+}
+
+Peercall.prototype.connectionstatechange = async function (uid, e) {
+    if (this.peers[uid] && (this.peers[uid].connectionState == "disconnected" || this.peers[uid].connectionState == "closed") ){
+        console.log(`connectionstatechange   ${uid} \n${e}`);
+        this.hangup(uid)
+        this.callback("onUserDel", uid)
+    }   
 }
 
 Peercall.prototype.gotRemoteStream = async function (uid, e) {
