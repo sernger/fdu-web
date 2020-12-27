@@ -1,10 +1,10 @@
 "use strict";
 import Peercall from './Peercall'
 
-function Screenshare(callback, conn) {
-    this.local_uid = 1;
+function Screenshare(callback, webconn) {
     this.callback = callback;
-    this.conn = conn;
+    this.conn = webconn.conn;
+    this.chanid = 1;
 
     this.offerOptions = {
         offerToReceiveAudio: 0,

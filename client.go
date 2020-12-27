@@ -57,7 +57,7 @@ type Client struct {
 // reads from this goroutine.
 func (c *Client) readPump() {
 	defer func() {
-		c.hub.broadcast <- []byte("userdel" + DELIMITER_STR + strconv.Itoa(int(c.uid)))
+		c.hub.broadcast <- []byte("userdel" + DELIMITER_STR + "0" + DELIMITER_STR + strconv.Itoa(int(c.uid)))
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
@@ -76,8 +76,8 @@ func (c *Client) readPump() {
 		log.Printf("msg:%s\n", message)
 		//message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 		messages := strings.Split(string(message), DELIMITER_STR)
-		if len(messages) >= 2 && messages[0] == "useradd" {
-			uid, err := strconv.Atoi(messages[1])
+		if len(messages) >= 3 && messages[0] == "useradd" {
+			uid, err := strconv.Atoi(messages[2])
 			if err == nil {
 				c.uid = uid
 			}

@@ -5,6 +5,7 @@ import { merge } from 'lodash'
 import './canvas.css'
 import '../../assets/fonts/css/icons.css'
 import Peercall from '../../services/Peercall'
+import Webconnect from '../../services/Webconnect'
 import Screenshare from '../../services/Screenshare'
 
 const tile_canvas = {
@@ -34,7 +35,8 @@ class AgoraCanvas extends React.Component {
             readyState: false
         }
         this.callback = this.callback.bind(this)
-        this.peercall = new Peercall(this.callback)
+        this.webcon = new Webconnect()
+        this.peercall = new Peercall(this.callback, this.webcon)
 
     }
 
@@ -71,6 +73,7 @@ class AgoraCanvas extends React.Component {
 
     async componentWillMount() {
         let $ = this.props
+        await this.webcon.Init()
         await this.peercall.Init()
     }
 
@@ -245,8 +248,8 @@ class AgoraCanvas extends React.Component {
     }
 
     handleshare = (e) => {
-        this.screenShare = new Screenshare(this.callback, this.peercall.conn)
-        this.screenShare.start()
+        this.screenShare = new Screenshare(this.callback, this.webcon)
+        this.screenShare.Init()
     }
 
     render() {

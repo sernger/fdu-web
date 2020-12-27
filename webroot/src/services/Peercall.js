@@ -1,6 +1,7 @@
 "use strict";
+import Webconnect from './Webconnect'
 var DELIMITER_STR = "$*$*$"
-function Peercall(callback) {
+function Peercall(callback, webconn) {
     this.startTime = 0;
     this.peers = {};
     this.callback = callback
@@ -10,76 +11,46 @@ function Peercall(callback) {
         offerToReceiveAudio: 1,
         offerToReceiveVideo: 1
     };
+    this.webconn = webconn
+    this.webconn.addchan(0, this.evcallback.bind(this))
+    this.chanid = 0
+}
+
+Peercall.prototype.evcallback = function (messages) {
+    if (messages.length == 0)
+        return;
+    switch (messages[0]) {
+        case 'useradd':
+            console.log(`useradd ${messages[1]}`);
+            this.onUserAdd(parseInt(messages[1]));
+            break;
+        case 'userdel':
+            console.log(`userdel ${messages[1]}`);
+            this.onUserDel(parseInt(messages[1]));
+            break;
+        case 'offer':
+            console.log(`offer ${messages[2]}\n${messages[4]}`);
+            this.onRecvOffer(parseInt(messages[2]), JSON.parse(messages[4]));
+            break;
+        case 'answer':
+            console.log(`answer ${messages[2]}\n${messages[4]}`);
+            this.onRecvAnswer(parseInt(messages[2]), JSON.parse(messages[4]));
+            break;
+        case 'turndata':
+            console.log(`turndata ${messages[1]}`);
+            this.turnData = JSON.parse(messages[1]);
+            break;
+        case 'icecandidate':
+            console.log(`icecandidate ${messages[2]}\n${messages[4]}`);
+            this.onIceCandidateFromPeer(parseInt(messages[2]), JSON.parse(messages[4]));
+            break;
+        default:
+            console.log(`Sorry, we are out of ${messages[0]}.`);
+    }
 }
 
 Peercall.prototype.Init = async function () {
-    function connect() {
-        return new Promise(function (resolve, reject) {
-            var server = new WebSocket("wss://" + "fdu-web.live" + "/ws");
-            server.onopen = function () {
-                console.log(`websocket open`);
-                resolve(server);
-            };
-            server.onerror = function (err) {
-                reject(err);
-            };
-
-        });
-    }
-
-    try {
-        this.conn = await connect()
-    } catch (error) {
-        console.log('WebSocket error: ' + error.code)
-    }
-    /*
-        this.conn.onopen = function () {
-            console.log(`websocket open`);
-        }
-    
-        this.conn.onerror = function (e) {
-            console.log('WebSocket error: ' + e.code)
-            console.log(e)
-        }
-     */
-    this.conn.onclose = function (e) {
-        console.log(`websocket close: ` + e.code);
-        console.log(e)
-    }.bind(this);
-
-    this.conn.onmessage = function (evt) {
-        var messages = evt.data.split(DELIMITER_STR);
-        if (messages.length == 0)
-            return;
-        switch (messages[0]) {
-            case 'useradd':
-                console.log(`useradd ${messages[1]}`);
-                this.onUserAdd(parseInt(messages[1]));
-                break;
-            case 'userdel':
-                console.log(`userdel ${messages[1]}`);
-                this.onUserDel(parseInt(messages[1]));
-                break;
-            case 'offer':
-                console.log(`offer ${messages[2]}\n${messages[3]}`);
-                this.onRecvOffer(parseInt(messages[2]), JSON.parse(messages[3]));
-                break;
-            case 'answer':
-                console.log(`answer ${messages[2]}\n${messages[3]}`);
-                this.onRecvAnswer(parseInt(messages[2]), JSON.parse(messages[3]));
-                break;
-            case 'turndata':
-                console.log(`turndata ${messages[1]}`);
-                this.turnData = JSON.parse(messages[1]);
-                break;
-            case 'icecandidate':
-                console.log(`icecandidate ${messages[2]}\n${messages[3]}`);
-                this.onIceCandidateFromPeer(parseInt(messages[2]), JSON.parse(messages[3]));
-                break;
-            default:
-                console.log(`Sorry, we are out of ${messages[0]}.`);
-        }
-    }.bind(this);
+    this.conn = this.webconn.conn
     this.start();
 }
 
@@ -99,7 +70,7 @@ Peercall.prototype.onUserDel = function (uid) {
 Peercall.prototype.start = async function () {
     console.log('Requesting local stream');
     await this.getLocalMedia();
-    this.conn.send("useradd" + DELIMITER_STR + this.local_uid.toString());
+    this.conn.send("useradd" + DELIMITER_STR + "0" + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString());
 }
 
 Peercall.prototype.getLocalMedia = async function () {
@@ -200,7 +171,7 @@ Peercall.prototype.onCreateOfferSuccess = async function (uid, desc) {
         this.onSetSessionDescriptionError();
     }
 
-    this.conn.send("offer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + JSON.stringify(desc));
+    this.conn.send("offer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString()  + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(desc));
 }
 
 Peercall.prototype.onSetLocalSuccess = function (uid) {
@@ -256,11 +227,11 @@ Peercall.prototype.onCreateAnswerSuccess = async function (uid, desc) {
     } catch (e) {
         this.onSetSessionDescriptionError(e);
     }
-    this.conn.send("answer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + JSON.stringify(desc));
+    this.conn.send("answer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(desc));
 }
 
 Peercall.prototype.onIceCandidate = async function (uid, event) {
-    this.conn.send("icecandidate" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + JSON.stringify(event.candidate));
+    this.conn.send("icecandidate" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(event.candidate));
     console.log(`send IceCandidate to ${uid}:\n${event.candidate ? event.candidate.candidate : '(null)'}`);
 }
 
