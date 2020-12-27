@@ -43,7 +43,7 @@ class AgoraCanvas extends React.Component {
     callback(e, param1, param2, param3) {
         switch (e) {
             case 'onGotlocalStream'://uid,chanid,stream
-                this.localStream = param1
+                this.localStream = param3
                 this.addStream(param1, param2, param3)
                 break;
             case 'ongotRemoteStream'://uid,chanid,stream
