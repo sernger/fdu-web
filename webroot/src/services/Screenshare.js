@@ -5,6 +5,11 @@ function Screenshare(callback, conn) {
     this.local_uid = 1;
     this.callback = callback;
     this.conn = conn;
+
+    this.offerOptions = {
+        offerToReceiveAudio: 0,
+        offerToReceiveVideo: 0
+    };
 }
 
 Screenshare.prototype = Object.create(Peercall.prototype);

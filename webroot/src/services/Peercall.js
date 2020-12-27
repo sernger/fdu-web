@@ -154,8 +154,10 @@ Peercall.prototype.setupPc = async function (uid) {
     this.peers[uid].addEventListener('track', e => this.gotRemoteStream(uid, e));
     this.peers[uid].addEventListener('connectionstatechange', e => this.connectionstatechange(uid, e));
 
-    this.localStream.getTracks().forEach(track => this.peers[uid].addTrack(track, this.localStream));
-    console.log('Added local stream to pc');
+    if(uid != 1) {
+        this.localStream.getTracks().forEach(track => this.peers[uid].addTrack(track, this.localStream));
+        console.log('Added local stream to pc');
+    }  
 }
 
 Peercall.prototype.connectionstatechange = async function (uid, e) {
