@@ -21,12 +21,12 @@ Peercall.prototype.evcallback = function (messages) {
         return;
     switch (messages[0]) {
         case 'useradd':
-            console.log(`useradd ${messages[1]}`);
-            this.onUserAdd(parseInt(messages[1]));
+            console.log(`useradd ${messages[2]}`);
+            this.onUserAdd(parseInt(messages[2]));
             break;
         case 'userdel':
-            console.log(`userdel ${messages[1]}`);
-            this.onUserDel(parseInt(messages[1]));
+            console.log(`userdel ${messages[2]}`);
+            this.onUserDel(parseInt(messages[2]));
             break;
         case 'offer':
             console.log(`offer ${messages[2]}\n${messages[4]}`);

@@ -104,7 +104,7 @@ func (h *Hub) run() {
 				}
 			}
 
-			id, err := strconv.Atoi(messages[1])
+			id, err := strconv.Atoi(messages[2])
 			if err != nil {
 				log.Printf("error: %v", err)
 			}
