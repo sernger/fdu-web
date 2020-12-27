@@ -35,11 +35,13 @@ Webconnect.prototype.Init = async function () {
             return;
         switch (messages[0]) {
             case 'userdel':
-                console.log(`userdel ${messages[2]}`);
-                this.chans[0].callback(messages);
+                this.chans[0](messages);
+                break;
+            case 'turndata':
+                this.chans[0](messages);
                 break;
             default:
-                this.chans[messages[3]].callback(messages);
+                this.chans[messages[3]](messages);
                 break;
         }
     }.bind(this);
