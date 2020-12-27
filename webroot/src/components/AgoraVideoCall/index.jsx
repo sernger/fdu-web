@@ -37,7 +37,7 @@ class AgoraCanvas extends React.Component {
         this.callback = this.callback.bind(this)
         this.webcon = new Webconnect()
         this.peercall = new Peercall(this.callback, this.webcon)
-
+        this.screenShare = new Screenshare(this.callback, this.webcon)
     }
 
     callback(e, param1, param2, param3) {
@@ -75,6 +75,7 @@ class AgoraCanvas extends React.Component {
         let $ = this.props
         await this.webcon.Init()
         await this.peercall.Init()
+        
     }
 
     async componentDidMount() {
@@ -248,7 +249,6 @@ class AgoraCanvas extends React.Component {
     }
 
     handleshare = (e) => {
-        this.screenShare = new Screenshare(this.callback, this.webcon)
         this.screenShare.Init()
     }
 

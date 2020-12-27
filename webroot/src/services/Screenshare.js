@@ -13,7 +13,7 @@ function Screenshare(callback, webconn) {
     };
 
     this.webconn = webconn
-    this.chanid = 0
+    this.chanid = 1
     this.webconn.addchan(this.chanid, this.evcallback.bind(this))
 }
 

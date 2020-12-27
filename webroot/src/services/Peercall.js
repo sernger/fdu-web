@@ -50,12 +50,11 @@ Peercall.prototype.evcallback = function (messages) {
 }
 
 Peercall.prototype.Init = async function () {
-    this.conn = this.webconn.conn
     this.start();
 }
 
 Peercall.prototype.close = function (uid) {
-    this.conn.close()
+    this.webconn.conn.close()
 }
 
 Peercall.prototype.onUserAdd = function (uid) {
@@ -70,7 +69,7 @@ Peercall.prototype.onUserDel = function (uid) {
 Peercall.prototype.start = async function () {
     console.log('Requesting local stream');
     await this.getLocalMedia();
-    this.conn.send("useradd" + DELIMITER_STR + "0" + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString());
+    this.webconn.conn.send("useradd" + DELIMITER_STR + "0" + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString());
 }
 
 Peercall.prototype.getLocalMedia = async function () {
@@ -171,7 +170,7 @@ Peercall.prototype.onCreateOfferSuccess = async function (uid, desc) {
         this.onSetSessionDescriptionError();
     }
 
-    this.conn.send("offer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString()  + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(desc));
+    this.webconn.conn.send("offer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString()  + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(desc));
 }
 
 Peercall.prototype.onSetLocalSuccess = function (uid) {
@@ -227,11 +226,11 @@ Peercall.prototype.onCreateAnswerSuccess = async function (uid, desc) {
     } catch (e) {
         this.onSetSessionDescriptionError(e);
     }
-    this.conn.send("answer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(desc));
+    this.webconn.conn.send("answer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(desc));
 }
 
 Peercall.prototype.onIceCandidate = async function (uid, event) {
-    this.conn.send("icecandidate" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(event.candidate));
+    this.webconn.conn.send("icecandidate" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(event.candidate));
     console.log(`send IceCandidate to ${uid}:\n${event.candidate ? event.candidate.candidate : '(null)'}`);
 }
 
