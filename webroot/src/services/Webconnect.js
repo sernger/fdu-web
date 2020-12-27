@@ -1,5 +1,5 @@
 "use strict";
-var DELIMITER_STR = "$*$*$"
+export var DELIMITER_STR = "$*$*$"
 function Webconnect() {
     this.chans = {};
 }

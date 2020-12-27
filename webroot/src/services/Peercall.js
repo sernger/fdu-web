@@ -1,19 +1,19 @@
 "use strict";
-import Webconnect from './Webconnect'
-var DELIMITER_STR = "$*$*$"
+import {DELIMITER_STR} from './Webconnect'
+var g_local_id = Math.ceil(Math.random() * 1000000 + 2);
 function Peercall(callback, webconn) {
     this.startTime = 0;
     this.peers = {};
     this.callback = callback
 
-    this.local_uid = Math.ceil(Math.random() * 1000000 + 2);
+    this.local_uid = g_local_id;
     this.offerOptions = {
         offerToReceiveAudio: 1,
         offerToReceiveVideo: 1
     };
     this.webconn = webconn
-    this.webconn.addchan(0, this.evcallback.bind(this))
     this.chanid = 0
+    this.webconn.addchan(this.chanid, this.evcallback.bind(this))
 }
 
 Peercall.prototype.evcallback = function (messages) {
@@ -353,4 +353,4 @@ Peercall.prototype.changeAVSelect = function () {
     this.getLocalMedia();
 }
 
-export default Peercall
+export {Peercall, g_local_id};

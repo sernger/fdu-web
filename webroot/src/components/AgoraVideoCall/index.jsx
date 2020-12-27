@@ -4,7 +4,7 @@ import { merge } from 'lodash'
 
 import './canvas.css'
 import '../../assets/fonts/css/icons.css'
-import Peercall from '../../services/Peercall'
+import { Peercall } from '../../services/Peercall'
 import Webconnect from '../../services/Webconnect'
 import Screenshare from '../../services/Screenshare'
 

@@ -1,15 +1,20 @@
 "use strict";
-import Peercall from './Peercall'
+import { Peercall, g_local_id} from './Peercall'
 
 function Screenshare(callback, webconn) {
-    this.callback = callback;
-    this.conn = webconn.conn;
-    this.chanid = 1;
+    this.startTime = 0;
+    this.peers = {};
+    this.callback = callback
 
+    this.local_uid = g_local_id;
     this.offerOptions = {
         offerToReceiveAudio: 0,
         offerToReceiveVideo: 0
     };
+
+    this.webconn = webconn
+    this.chanid = 0
+    this.webconn.addchan(this.chanid, this.evcallback.bind(this))
 }
 
 Screenshare.prototype = Object.create(Peercall.prototype);
