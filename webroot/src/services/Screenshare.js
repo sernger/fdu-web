@@ -9,7 +9,7 @@ function Screenshare(callback, webconn) {
     this.local_uid = g_local_id;
     this.offerOptions = {
         offerToReceiveAudio: 0,
-        offerToReceiveVideo: 0
+        offerToReceiveVideo: 1
     };
 
     this.webconn = webconn
@@ -31,22 +31,19 @@ Screenshare.prototype.getLocalMedia = async function () {
 
         console.log('Received screen stream');
         this.localStream = stream;
-        this.callback("onGotScreenStream", stream);
-        stream.getVideoTracks()[0].addEventListener('ended', () => {
+        this.callback("onGotlocalStream", 0, this.chanid, stream);
+        stream.getVideoTracks()[0].addEventListener('ended', (() => {
             console.log('The user has ended sharing the screen');
-            this.callback("onRemoveScreenStream", stream);
+            this.callback("onRemoveStream", 0, this.chanid);
             this.localStream = null;
-        });
+            this.hangupall();
+        }).bind(this));
 
         console.log('Received screen stream');
 
     } catch (e) {
         console.log(`getDisplayMedia() error: ${e.name}`);
     }
-}
-
-Screenshare.prototype.gotRemoteStream = async function (uid, e) {
-    this.callback("onGotScreenStream", uid, e.streams[0])
 }
 
 export default Screenshare

@@ -42,15 +42,15 @@ class AgoraCanvas extends React.Component {
 
     callback(e, param1, param2, param3) {
         switch (e) {
-            case 'onGotlocalStream':
-                //stream = param1
+            case 'onGotlocalStream'://uid,chanid,stream
                 this.localStream = param1
-                this.addStream(0, param1)
+                this.addStream(param1, param2, param3)
                 break;
-            case 'ongotRemoteStream':
-                //uid = param1
-                //stream = param2
-                this.addStream(param1, param2)
+            case 'ongotRemoteStream'://uid,chanid,stream
+                this.addStream(param1, param2, param3)
+                break;
+            case 'onRemoveStream'://uid,chanid
+                this.removeStream(param1, param2)
                 break;
             case 'onGotDevices':
                 //deviceInfos = param1
@@ -59,13 +59,7 @@ class AgoraCanvas extends React.Component {
                 //uid = param1
                 this.removeStream(param1)
                 break;
-            case 'onGotScreenStream':
-                //stream = param1
-                this.addStream(1, param1)
-                break;
-            case 'onRemoveScreenStream':
-                this.removeStream(1)
-                break;
+
             default:
                 break;
         }
@@ -75,7 +69,7 @@ class AgoraCanvas extends React.Component {
         let $ = this.props
         await this.webcon.Init()
         await this.peercall.Init()
-        
+
     }
 
     async componentDidMount() {
@@ -111,6 +105,7 @@ class AgoraCanvas extends React.Component {
                 return
             }
             var index = 0;
+            var hasScreenShare = this.state.streamList[1] != undefined;
             Object.entries(this.state.streamList).forEach(function (item) {
                 let dom = document.querySelector('#ag-item-' + item[0])
                 if (!dom) {
@@ -121,7 +116,10 @@ class AgoraCanvas extends React.Component {
                     dom.setAttribute("autoplay", "autoplay");
                     canvas.appendChild(dom)
                 }
-                if (index === no - 1) {
+                if(item[0] == 1){
+                    dom.setAttribute('style', `grid-area: span 12/span 24/13/25`)
+                }
+                else if ( !hasScreenShare && index === no - 1) {
                     dom.setAttribute('style', `grid-area: span 12/span 24/13/25`)
                 }
                 else {
@@ -162,14 +160,24 @@ class AgoraCanvas extends React.Component {
         this.peercall && this.peercall.close()
     }
 
-    removeStream = (uid) => {
+    removeStream = (uid, chanid) => {
+        if (chanid == 1){
+            uid = 1;
+        }
+        let element = document.querySelector('#ag-item-' + uid)
+        if (element) {
+          element.parentNode.removeChild(element)
+        }
         delete this.state.streamList[uid]
         this.setState({
             streamList: this.state.streamList
         })
     }
 
-    addStream = (uid, stream) => {
+    addStream = (uid, chanid, stream) => {
+        if (chanid == 1){
+            uid = 1;
+        }
         if (this.state.streamList[uid] != null)
             return
         this.state.streamList[uid] = stream
@@ -304,10 +312,10 @@ class AgoraCanvas extends React.Component {
             </span>
         )
 
-        const screenShareBtn = 
+        const screenShareBtn =
             <span
                 onClick={this.handleshare}
-                className={this.state.streamList[1] == null ? 'ag-btn shareScreenBtn' : 'ag-btn shareScreenBtn disabled'}
+                className={this.state.streamList[1] == undefined ? 'ag-btn shareScreenBtn' : 'ag-btn shareScreenBtn disabled'}
                 title="Screen Share">
                 <i className="ag-icon ag-icon-screen-share"></i>
             </span>
@@ -324,7 +332,7 @@ class AgoraCanvas extends React.Component {
                     </span> */}
                     {switchDisplayBtn}
                     {hideRemoteBtn}
-                    
+
                 </div>
             </div>
         )

@@ -86,7 +86,12 @@ Peercall.prototype.getLocalMedia = async function () {
         navigator.mediaDevices.enumerateDevices().then(this.gotDevices.bind(this)).catch(this.handleError.bind(this));
         console.log('Received local stream');
         this.localStream = stream;
-        this.callback("onGotlocalStream", stream);
+        this.callback("onGotlocalStream", 0, this.chanid, stream);
+
+        stream.getVideoTracks()[0].addEventListener('ended', (() => {
+            this.callback("onRemoveStream", 0, this.chanid);
+            this.localStream = null;
+        }).bind(this));
     } catch (e) {
         alert(`getUserMedia() error: ${e.name}`);
     }
@@ -94,14 +99,17 @@ Peercall.prototype.getLocalMedia = async function () {
 
 Peercall.prototype.setupPc = async function (uid) {
     this.startTime = window.performance.now();
-    const videoTracks = this.localStream.getVideoTracks();
-    const audioTracks = this.localStream.getAudioTracks();
-    if (videoTracks.length > 0) {
-        console.log(`Using video device: ${videoTracks[0].label}`);
+    if(this.localStream) {
+        const videoTracks = this.localStream.getVideoTracks();
+        const audioTracks = this.localStream.getAudioTracks();
+        if (videoTracks.length > 0) {
+            console.log(`Using video device: ${videoTracks[0].label}`);
+        }
+        if (audioTracks.length > 0) {
+            console.log(`Using audio device: ${audioTracks[0].label}`);
+        }
     }
-    if (audioTracks.length > 0) {
-        console.log(`Using audio device: ${audioTracks[0].label}`);
-    }
+    
     var turnservers = [];
     for (var i = 0; i < this.turnData.Uris.length; i++) {
         var turn = {};
@@ -121,10 +129,10 @@ Peercall.prototype.setupPc = async function (uid) {
     console.log('Created local peer connection object pc');
     this.peers[uid].addEventListener('icecandidate', e => this.onIceCandidate(uid, e));
     this.peers[uid].addEventListener('iceconnectionstatechange', e => this.onIceStateChange(uid, e));
-    this.peers[uid].addEventListener('track', e => this.gotRemoteStream(uid, e));
+    this.peers[uid].addEventListener('track', e => this.gotRemoteStream(uid, this.chanid, e));
     this.peers[uid].addEventListener('connectionstatechange', e => this.connectionstatechange(uid, e));
 
-    if(uid != 1) {
+    if(this.localStream) {
         this.localStream.getTracks().forEach(track => this.peers[uid].addTrack(track, this.localStream));
         console.log('Added local stream to pc');
     }  
@@ -134,12 +142,18 @@ Peercall.prototype.connectionstatechange = async function (uid, e) {
     if (this.peers[uid] && (this.peers[uid].connectionState == "disconnected" || this.peers[uid].connectionState == "closed") ){
         console.log(`connectionstatechange   ${uid} \n${e}`);
         this.hangup(uid)
-        this.callback("onUserDel", uid)
+        //this.callback("onUserDel", uid)
     }   
 }
 
-Peercall.prototype.gotRemoteStream = async function (uid, e) {
-    this.callback("ongotRemoteStream", uid, e.streams[0])
+Peercall.prototype.gotRemoteStream = async function (uid, chanid, e) {
+    console.log(`gotRemoteStream   uid:${uid} chanid:${chanid} \n${e}`);
+    this.callback("ongotRemoteStream", uid, chanid, e.streams[0])
+
+    e.streams[0].getVideoTracks()[0].addEventListener('ended', (() => {
+        this.callback("onRemoveStream", uid, chanid);
+        this.localStream = null;
+    }).bind(this));
 }
 
 Peercall.prototype.call = async function (uid) {
@@ -257,6 +271,15 @@ Peercall.prototype.onIceStateChange = function (uid, event) {
         console.log(`${uid} ICE state: ${this.peers[uid].iceConnectionState}`);
         console.log('ICE state change event: ', event);
     }
+}
+
+Peercall.prototype.hangupall = function () {
+    console.log(`Ending all call`);
+    Object.entries(this.peers).forEach(function (item){
+        item[1].close();
+    })
+
+    Object.keys(this.peers).forEach((k => delete this.peers[k]).bind(this))
 }
 
 Peercall.prototype.hangup = function (uid) {

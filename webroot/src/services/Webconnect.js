@@ -39,6 +39,7 @@ Webconnect.prototype.Init = async function () {
                 break;
             case 'turndata':
                 this.chans[0](messages);
+                this.chans[1](messages);
                 break;
             default:
                 this.chans[messages[3]](messages);
