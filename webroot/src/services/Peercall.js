@@ -69,7 +69,7 @@ Peercall.prototype.onUserDel = function (uid) {
 Peercall.prototype.start = async function () {
     console.log('Requesting local stream');
     await this.getLocalMedia();
-    this.webconn.conn.send("useradd" + DELIMITER_STR + "0" + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString());
+    this.webconn.conn.send("useradd" + DELIMITER_STR + "0" + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString()+DELIMITER_STR);
 }
 
 Peercall.prototype.getLocalMedia = async function () {
@@ -184,7 +184,7 @@ Peercall.prototype.onCreateOfferSuccess = async function (uid, desc) {
         this.onSetSessionDescriptionError();
     }
 
-    this.webconn.conn.send("offer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString()  + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(desc));
+    this.webconn.conn.send("offer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString()  + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(desc)+DELIMITER_STR);
 }
 
 Peercall.prototype.onSetLocalSuccess = function (uid) {
@@ -240,11 +240,11 @@ Peercall.prototype.onCreateAnswerSuccess = async function (uid, desc) {
     } catch (e) {
         this.onSetSessionDescriptionError(e);
     }
-    this.webconn.conn.send("answer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(desc));
+    this.webconn.conn.send("answer" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(desc)+DELIMITER_STR);
 }
 
 Peercall.prototype.onIceCandidate = async function (uid, event) {
-    this.webconn.conn.send("icecandidate" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(event.candidate));
+    this.webconn.conn.send("icecandidate" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(event.candidate)+DELIMITER_STR);
     console.log(`send IceCandidate to ${uid}:\n${event.candidate ? event.candidate.candidate : '(null)'}`);
 }
 
