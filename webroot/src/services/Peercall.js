@@ -244,8 +244,14 @@ Peercall.prototype.onCreateAnswerSuccess = async function (uid, desc) {
 }
 
 Peercall.prototype.onIceCandidate = async function (uid, event) {
-    this.webconn.conn.send("icecandidate" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(event.candidate)+DELIMITER_STR);
-    console.log(`send IceCandidate to ${uid}:\n${event.candidate ? event.candidate.candidate : '(null)'}`);
+    if(event.candidate) {
+        this.webconn.conn.send("icecandidate" + DELIMITER_STR + uid.toString() + DELIMITER_STR + this.local_uid.toString() + DELIMITER_STR + this.chanid.toString() + DELIMITER_STR + JSON.stringify(event.candidate)+DELIMITER_STR);
+        console.log(`send IceCandidate to ${uid}:\n${event.candidate.candidate}`);
+    }
+    else {
+        console.log('End of candidates.');
+    }
+    
 }
 
 Peercall.prototype.onIceCandidateFromPeer = async function (uid, candidate) {
