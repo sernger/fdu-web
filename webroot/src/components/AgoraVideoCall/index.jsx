@@ -116,6 +116,9 @@ class AgoraCanvas extends React.Component {
                     dom.setAttribute("autoplay", "autoplay");
                     canvas.appendChild(dom)
                 }
+                if(item[0] == 0){
+                    dom.muted = true;
+                }
                 if(item[0] == 1){
                     dom.setAttribute('style', `grid-area: span 12/span 24/13/25`)
                 }
@@ -143,6 +146,9 @@ class AgoraCanvas extends React.Component {
                     dom.srcObject = item[1];
                     dom.setAttribute("autoplay", "autoplay");
                     canvas.appendChild(dom)
+                }
+                if(item[0] == 0){
+                    dom.muted = true;
                 }
                 dom.setAttribute('style', `grid-area: ${tile_canvas[no][index]}`)
                 index++;
