@@ -100,7 +100,7 @@ class AgoraCanvas extends React.Component {
         // pip mode (can only use when less than 4 people in channel)
         if (this.state.displayMode === 'pip') {
             let no = Object.keys(this.state.streamList).length//this.state.streamList.keys(data).length
-            if (no > 4) {
+            if (no > 10) {
                 this.setState({ displayMode: 'tile' })
                 return
             }
