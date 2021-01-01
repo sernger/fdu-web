@@ -152,7 +152,6 @@ Peercall.prototype.gotRemoteStream = async function (uid, chanid, e) {
 
     e.streams[0].getVideoTracks()[0].addEventListener('ended', (() => {
         this.callback("onRemoveStream", uid, chanid);
-        this.localStream = null;
     }).bind(this));
 }
 
