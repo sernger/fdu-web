@@ -18,11 +18,11 @@ class Meeting extends React.Component {
       <div className="wrapper meeting">
         <div className="ag-header">
           <div className="ag-header-lead">
-            <img
+            {/*<img
               className="header-logo"
-              src={require("../../assets/images/ag-logo.png")}
+              //src={require("../../assets/images/logo.png")}
               alt=""
-            />
+            />*/}
             <span>WebRTC 云课堂</span>
           </div>
           <div className="ag-header-msg">
