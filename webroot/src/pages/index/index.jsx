@@ -135,8 +135,6 @@ class Index extends React.Component {
             <span>Powered By Fudan</span>
           </a>
           <div>
-            {/*<span>Interested in Agora video call SDK? Contact </span> href="https://www.agora.io"
-            <span className="ag-contact">sales@agora.io</span>*/}
           </div>
         </div>
       </div>
@@ -236,20 +234,11 @@ class BaseOptions extends React.Component {
   constructor(props) {
     super(props)
     this._options = [
-      {
-        label: 'Agora Video Call',
-        value: 'avc',
-        content: 'One to one and group calls'
-      },
-      {
-        label: 'Agora Live',
-        value: 'al',
-        content: 'Enabling real-time interactions between the host and the audience'
-      }
+
     ]
     this.state = {
       active: false,
-      message: 'Agora Video Call',
+      message: 'Video Call',
 
     }
   }
